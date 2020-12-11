@@ -1,0 +1,8 @@
+CRAFT/weights/craft_mlt_25k.pth 
+TextRecognizer/saved_models/
+TextRecognizer/saved_models/TPS-ResNet-BiLSTM-Attn-Seed1111/
+data/craft_output/
+data/crop_img/
+data/input_img/
+data/output/
+*/.ipynb_checkpoint/
