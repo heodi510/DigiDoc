@@ -2,7 +2,7 @@ import os
 import numpy as np
 import cv2
 import pandas as pd
-
+from pathlib import Path
 
 def crop(pts, image):
 
@@ -47,7 +47,7 @@ def generate_words(image_name, score_bbox, image):
                 folder = '/'.join( image_name.split('/')[:-1])
 
                 #CHANGE DIR
-                dir = '../data/crop_img/'
+                dir = result_folder
 
                 if os.path.isdir(os.path.join(dir + folder)) == False :
                     os.makedirs(os.path.join(dir + folder))
@@ -59,9 +59,11 @@ def generate_words(image_name, score_bbox, image):
                 except:
                     continue
 
-data=pd.read_csv('../data/craft_output/data.csv')
+home = str(Path.home())
+data=pd.read_csv(home+'/craft/data/craft_output/data.csv')
 
-start = '../data/input_img/'
+start = home+'/craft/data/input_img/'
+result_folder = home+'/craft/data/crop_img/'
 
 for image_num in range(data.shape[0]):
     image = cv2.imread(os.path.join(start, data['image_name'][image_num]))

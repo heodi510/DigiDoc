@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import argparse
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -28,42 +29,7 @@ from collections import OrderedDict
 def str2bool(v):
     return v.lower() in ("yes", "y", "true", "t", "1")
 
-#CRAFT
-parser = argparse.ArgumentParser(description='CRAFT Text Detection')
-parser.add_argument('--trained_model', default='weights/craft_mlt_25k.pth', type=str, help='pretrained model')
-parser.add_argument('--text_threshold', default=0.7, type=float, help='text confidence threshold')
-parser.add_argument('--low_text', default=0.4, type=float, help='text low-bound score')
-parser.add_argument('--link_threshold', default=0.4, type=float, help='link confidence threshold')
-parser.add_argument('--cuda', default=True, type=str2bool, help='Use cuda for inference')
-parser.add_argument('--canvas_size', default=1280, type=int, help='image size for inference')
-parser.add_argument('--mag_ratio', default=1.5, type=float, help='image magnification ratio')
-parser.add_argument('--poly', default=False, action='store_true', help='enable polygon type')
-parser.add_argument('--show_time', default=False, action='store_true', help='show processing time')
-parser.add_argument('--test_folder', default='test_img/', type=str, help='folder path to input images')
-parser.add_argument('--refine', default=False, action='store_true', help='enable link refiner')
-parser.add_argument('--refiner_model', default='weights/craft_refiner_CTW1500.pth', type=str, help='pretrained refiner model')
-
-args = parser.parse_args()
-
-
-""" For test images in a folder """
-image_list, _, _ = file_utils.get_files(args.test_folder)
-
-image_names = []
-image_paths = []
-
-#CUSTOMISE START
-start = args.test_folder
-
-for num in range(len(image_list)):
-    image_names.append(os.path.relpath(image_list[num], start))
-
-
-result_folder = './result/'
-if not os.path.isdir(result_folder):
-    os.mkdir(result_folder)
-
-if __name__ == '__main__':
+def run(args):
 
     data=pd.DataFrame(columns=['image_name', 'word_bboxes', 'pred_words', 'align_text'])
     data['image_name'] = image_names
@@ -124,5 +90,51 @@ if __name__ == '__main__':
 
         file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
 
-    data.to_csv('data.csv', sep = ',', na_rep='Unknown')
+    data.to_csv(result_folder+'data.csv', sep = ',', na_rep='Unknown')
     print("elapsed time : {}s".format(time.time() - t))
+    
+
+# initalize paths
+# modify the absolute path if necessary
+home = str(Path.home())
+weights_path = home+'/craft/CRAFT/weights/'
+input_path = home+'/craft/data/input_img/'
+result_folder = home+'/craft/data/craft_output/'
+    
+# create argument parser
+parser = argparse.ArgumentParser(description='CRAFT Text Detection')
+parser.add_argument('--trained_model', default=weights_path+'craft_mlt_25k.pth', type=str, help='pretrained model')
+parser.add_argument('--text_threshold', default=0.7, type=float, help='text confidence threshold')
+parser.add_argument('--low_text', default=0.4, type=float, help='text low-bound score')
+parser.add_argument('--link_threshold', default=0.4, type=float, help='link confidence threshold')
+parser.add_argument('--cuda', default=True, type=str2bool, help='Use cuda for inference')
+parser.add_argument('--canvas_size', default=1280, type=int, help='image size for inference')
+parser.add_argument('--mag_ratio', default=1.5, type=float, help='image magnification ratio')
+parser.add_argument('--poly', default=False, action='store_true', help='enable polygon type')
+parser.add_argument('--show_time', default=False, action='store_true', help='show processing time')
+parser.add_argument('--input_folder', default=input_path, type=str, help='folder path to input images')
+parser.add_argument('--refine', default=False, action='store_true', help='enable link refiner')
+parser.add_argument('--refiner_model', default=weights_path+'craft_refiner_CTW1500.pth', type=str, help='pretrained refiner model')
+args = parser.parse_args()
+
+
+
+if __name__ == '__main__':
+    
+    """ For test images in a folder """
+    image_list, _, _ = file_utils.get_files(args.input_folder)
+    image_names = []
+    image_paths = []
+
+    #CUSTOMISE START
+    start = args.input_folder
+
+    for num in range(len(image_list)):
+        image_names.append(os.path.relpath(image_list[num], start))
+
+    # create result folder if it is not exist
+    if not os.path.isdir(result_folder):
+        os.mkdir(result_folder)
+        
+    run(args)
+    
