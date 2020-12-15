@@ -24,7 +24,7 @@ def crop(pts, image):
     return dst2
 
 
-def generate_words(image_name, score_bbox, image):
+def generate_words(image_name, score_bbox, image, result_folder):
 
     num_bboxes = len(score_bbox)
     for num in range(num_bboxes):
@@ -58,16 +58,19 @@ def generate_words(image_name, score_bbox, image):
                     print('Image saved to '+file_name+'_{}_{}_{}_{}_{}_{}_{}_{}.jpg'.format(l_t, t_l, r_t ,t_r, r_b , b_r ,l_b, b_l))
                 except:
                     continue
+def run():
+    home = str(Path.home())
+    data=pd.read_csv(home+'/craft/data/craft_output/data.csv')
 
-home = str(Path.home())
-data=pd.read_csv(home+'/craft/data/craft_output/data.csv')
+    start = home+'/craft/data/input_img/'
+    result_folder = home+'/craft/data/crop_img/'
 
-start = home+'/craft/data/input_img/'
-result_folder = home+'/craft/data/crop_img/'
-
-for image_num in range(data.shape[0]):
-    image = cv2.imread(os.path.join(start, data['image_name'][image_num]))
-    image_name = data['image_name'][image_num].strip('.jpg')
-    score_bbox = data['word_bboxes'][image_num].split('),')
-    print('image_name: ',image_name)
-    generate_words(image_name, score_bbox, image)
+    for image_num in range(data.shape[0]):
+        image = cv2.imread(os.path.join(start, data['image_name'][image_num]))
+        image_name = data['image_name'][image_num].strip('.jpg')
+        score_bbox = data['word_bboxes'][image_num].split('),')
+        print('image_name: ',image_name)
+        generate_words(image_name, score_bbox, image, result_folder)
+        
+if __name__ == '__main__':
+    run()

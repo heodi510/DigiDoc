@@ -14,37 +14,37 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 import pandas as pd
 import os
 
-def demo(opt):
+def demo(args):
 
     """Open csv file wherein you are going to write the Predicted Words"""
     data = pd.read_csv('../data/craft_output/data.csv')
 
     """ model configuration """
-    if 'CTC' in opt.Prediction:
-        converter = CTCLabelConverter(opt.character)
+    if 'CTC' in args.Prediction:
+        converter = CTCLabelConverter(args.character)
     else:
-        converter = AttnLabelConverter(opt.character)
-    opt.num_class = len(converter.character)
+        converter = AttnLabelConverter(args.character)
+    args.num_class = len(converter.character)
 
-    if opt.rgb:
-        opt.input_channel = 3
-    model = Model(opt)
-    print('model input parameters', opt.imgH, opt.imgW, opt.num_fiducial, opt.input_channel, opt.output_channel,
-          opt.hidden_size, opt.num_class, opt.batch_max_length, opt.Transformation, opt.FeatureExtraction,
-          opt.SequenceModeling, opt.Prediction)
+    if args.rgb:
+        args.input_channel = 3
+    model = Model(args)
+    print('model input parameters', args.imgH, args.imgW, args.num_fiducial, args.input_channel, args.output_channel,
+          args.hidden_size, args.num_class, args.batch_max_length, args.Transformation, args.FeatureExtraction,
+          args.SequenceModeling, args.Prediction)
     model = torch.nn.DataParallel(model).to(device)
 
     # load model
-    print('loading pretrained model from %s' % opt.saved_model)
-    model.load_state_dict(torch.load(opt.saved_model, map_location=device))
+    print('loading pretrained model from %s' % args.saved_model)
+    model.load_state_dict(torch.load(args.saved_model, map_location=device))
 
     # prepare data. two demo images from https://github.com/bgshih/crnn#run-demo
-    AlignCollate_demo = AlignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio_with_pad=opt.PAD)
-    demo_data = RawDataset(root=opt.image_folder, opt=opt)  # use RawDataset
+    AlignCollate_demo = AlignCollate(imgH=args.imgH, imgW=args.imgW, keep_ratio_with_pad=args.PAD)
+    demo_data = RawDataset(root=args.image_folder, args=args)  # use RawDataset
     demo_loader = torch.utils.data.DataLoader(
-        demo_data, batch_size=opt.batch_size,
+        demo_data, batch_size=args.batch_size,
         shuffle=False,
-        num_workers=int(opt.workers),
+        num_workers=int(args.workers),
         collate_fn=AlignCollate_demo, pin_memory=True)
 
     # predict
@@ -54,10 +54,10 @@ def demo(opt):
             batch_size = image_tensors.size(0)
             image = image_tensors.to(device)
             # For max length prediction
-            length_for_pred = torch.IntTensor([opt.batch_max_length] * batch_size).to(device)
-            text_for_pred = torch.LongTensor(batch_size, opt.batch_max_length + 1).fill_(0).to(device)
+            length_for_pred = torch.IntTensor([args.batch_max_length] * batch_size).to(device)
+            text_for_pred = torch.LongTensor(batch_size, args.batch_max_length + 1).fill_(0).to(device)
 
-            if 'CTC' in opt.Prediction:
+            if 'CTC' in args.Prediction:
                 preds = model(image, text_for_pred)
 
                 # Select max probabilty (greedy decoding) then decode index to character
@@ -96,7 +96,7 @@ def demo(opt):
                 txt_file=os.path.join(start, folder, file_name)                
                 
                 log = open(f'{txt_file}_log_demo_result.txt', 'a')
-                if 'Attn' in opt.Prediction:
+                if 'Attn' in args.Prediction:
                     pred_EOS = pred.find('[s]')
                     pred = pred[:pred_EOS]  # prune after "end of sentence" token ([s])
                     pred_max_prob = pred_max_prob[:pred_EOS]
@@ -133,16 +133,11 @@ if __name__ == '__main__':
                         help='the number of output channel of Feature extractor')
     parser.add_argument('--hidden_size', type=int, default=256, help='the size of the LSTM hidden state')
 
-    opt = parser.parse_args()
+    args = parser.parse_args()
 
     """ vocab / character number configuration """
-    if opt.sensitive:
-        opt.character = string.printable[:-6]  # same with ASTER setting (use 94 char).
-
-    cudnn.benchmark = True
-    cudnn.deterministic = True
-    opt.num_gpu = torch.cuda.device_count()
-    # print (opt.image_folder)
+    if args.sensitive:
+        args.character = string.printable[:-6]  # same with ASTER setting (use 94 char).
 
     # pred_words=demo(opt)
-    demo(opt)
+    demo(args)

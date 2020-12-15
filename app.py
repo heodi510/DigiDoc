@@ -1,77 +1,62 @@
-# pylint: disable=line-too-long
-"""This is example shows how to **upload multiple files** via the
-[File Uploader Widget](https://streamlit.io/docs/api.html?highlight=file%20upload#streamlit.file_uploader)
-
-As far as I can see you can only upload one file at a time. So if you need multiple files in your
-app, you need to store them in a static List or Dictionary. Alternatively they should be uploaded
-as one .zip file.
-
-Please note that file uploader is a **bit problematic** because
-- You can only upload one file at the time.
-- You get no additional information on the file like name, size, upload time, type etc. So you
-cannot distinguish the files without reading the content.
-- every time you interact with any widget, the script is rerun and you risk processing or storing
-the file again!
-- The file uploader widget is not cleared when you clear the cache and there is no way to clear the
-file uploader widget programmatically.
-
-Based on the above list I created [Issue 897](https://github.com/streamlit/streamlit/issues/897)
-
-This example was based on
-[Discuss 1445](https://discuss.streamlit.io/t/uploading-multiple-files-with-file-uploader/1445)
-"""
-# pylint: enable=line-too-long
 from typing import Dict
-import os
-import io
 import streamlit as st
 from PIL import Image
+import sys
+import pandas as pd
+import base64
 
 @st.cache(allow_output_mutation=True)
 def get_static_store() -> Dict:
     """This dictionary is initialized once and can be used to store the files uploaded"""
     return {}
 
-
 def main():
     """Run this function to run the app"""
-    static_store = get_static_store()
-
-    st.info(__doc__)
-    result = st.file_uploader("Upload", type=["png","jpg","jpeg"])
-    if result:
-        # Process you file here
-        value = result.getvalue()
-
-        # And add it to the static_store if not already in
-        if not value in static_store.values():
-            static_store[result] = value
-    else:
-        static_store.clear()  # Hack to clear list if the user clears the cache and reloads the page
-        st.info("Upload one or more `.py` files.")
-
-    if st.button("Clear file list"):
-        static_store.clear()
-    if st.checkbox("Show file list?", True):
-        st.write(list(static_store.keys()))
-    if st.checkbox("Show content of files?"):
-        for value in static_store.values():
-            st.code(value)
     
-    if st.button("Show Image"):
-        img = Image.open(result)
-        st.info(len(static_store))
-        for i,value in enumerate(static_store.values()):
-            st.image(value,width=200)
-            image = Image.open(io.BytesIO(value))
-            image_name = 'image_'+str(i)+'.jpg'
-            image.save('data/input_img/'+image_name)
-            
-            
-    if st.button("run pipeline"):
-        os.system('python CRAFT/pipeline.py')
-        os.system('python CRAFT/crop_image.py')
+    # SIDEBARS
+    st.sidebar.header("Navigation")
+    st.sidebar.markdown("We help convert menus, documents, invoices or other physical text into an organized CSV file.")
+    document_type = st.sidebar.selectbox("Document Type",["Menus","Invoices (Coming Soon)","Tax Forms (Coming Soon)","Contracts (Coming Soon)","Reports (Coming Soon)","Id Documents (Coming Soon)"])
+    # if st.sidebar.checkbox("Format Guide"):
+    #     st.sidebar.checkbox("Format 1")
+    st.sidebar.radio("Type of Format",("Format 1","Format 2","Format 3","Format 4"))
+    st.sidebar.header("About")
+    st.sidebar.info("***Input Your Own Description***")
 
+    st.image("Document Digitization.jpg",width=700)
+    st.title("Document Digitization")
+    
+    result = st.file_uploader("Upload one or more images to convert to CSV", type=["png","jpg","jpeg"],accept_multiple_files=True)
+
+    if result:
+        st.info("Total: " + str(len(result)) + " Images")
+        st.info(result)
+
+    if st.checkbox("Show Images / Hide Images"):
+        for x in result:
+            st.image(x.getvalue(),width=200)
+    
+    # ADD MODEL HERE
+    if st.button("Run Model"):
+        st.text('***LOAD MODEL HERE***')
+        
+        #PROGRESS BAR Take out if cannot figure out
+        import time
+        my_bar = st.progress(0)
+        for p in range(100):
+            time.sleep(0.5)
+            my_bar.progress(p + 1)
+
+
+    # CHANGE TO CSV FILE AND INPUT HERE
+    data = [(1, 2, 3)]
+    # When no file name is given, pandas returns the CSV as a string, nice.
+    df = pd.DataFrame(data, columns=["Col1", "Col2", "Col3"])
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    #Change b64 to output file
+    href = f'<a href="data:file/csv;base64,{b64}">Download CSV File</a> (right-click and save as &lt;some_name&gt;.csv)'
+    st.markdown(href, unsafe_allow_html=True)
 
 main()
 

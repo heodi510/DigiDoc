@@ -4,8 +4,8 @@ import time
 import argparse
 from pathlib import Path
 from argparse import Namespace
-import CRAFT.pipeline as pipeline
-import CRAFT.crop_image as crop_image
+import pipeline
+import crop_image
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -16,15 +16,11 @@ from PIL import Image
 import cv2
 from skimage import io
 import numpy as np
-import CRAFT.craft_utils as craft_utils
-import CRAFT.test as test
-import CRAFT.imgproc as imgproc
-import CRAFT.file_utils as file_utils
 import json
 import zipfile
 import pandas as pd
 
-from CRAFT.craft import CRAFT
+from craft import CRAFT
 
 from collections import OrderedDict
 
