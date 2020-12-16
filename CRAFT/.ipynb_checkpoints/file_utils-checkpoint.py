@@ -14,6 +14,8 @@ def list_files(in_path):
     mask_files = []
     gt_files = []
     for (dirpath, dirnames, filenames) in os.walk(in_path):
+        if ".ipynb_checkpoints" in dirnames:
+            dirnames.remove(".ipynb_checkpoints")
         for file in filenames:
             filename, ext = os.path.splitext(file)
             ext = str.lower(ext)
