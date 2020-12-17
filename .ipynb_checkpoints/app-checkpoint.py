@@ -79,6 +79,16 @@ def setup_Recognizer():
     t_args,recognizer,converter = load_model(t_args)
     return t_args,recognizer,converter
 
+def gen_digi_docs(text_menu_list):
+    for text in text_menu_list:
+        with open(text, "rb") as f:
+            text_name=text.split('/')[-1].split('.')[0]
+            bytes = f.read()
+            b64 = base64.b64encode(bytes).decode()
+            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name}.txt</a> '
+            st.markdown(href, unsafe_allow_html=True)
+
+
 def main():
     """Run this function to run the app"""
     
@@ -86,12 +96,11 @@ def main():
     st.sidebar.header("Navigation")
     st.sidebar.markdown("We help convert menus, documents, invoices or other physical text into an organized CSV file.")
     document_type = st.sidebar.selectbox("Document Type",["Menus","Invoices (Coming Soon)","Tax Forms (Coming Soon)","Contracts (Coming Soon)","Reports (Coming Soon)","Id Documents (Coming Soon)"])
-    # if st.sidebar.checkbox("Format Guide"):
-    #     st.sidebar.checkbox("Format 1")
     file_format = st.sidebar.radio("Type of Format",("Format 1","Format 2","Format 3","Format 4"))
     st.sidebar.header("About")
     st.sidebar.info("***Input Your Own Description***")
 
+    # Main Page
     st.image("pic/logo.png",width=600)
     st.title("Change your document to digital files")
     
@@ -99,36 +108,29 @@ def main():
 
     if result:
         st.info("Total: " + str(len(result)) + " Images")
-        st.info(result)
         
         # save image into input file
         for i,img_file_buffer in enumerate(result):
             img = Image.open(img_file_buffer)
             img.save(input_path+'image_'+str(i+1)+'.jpg')
-        
-        img_dict = {'image_'+str(i+1)+'.jpg':img for i,img in enumerate(result)}
-        st.write(img_dict)
-
+            
     if st.checkbox("Show Images / Hide Images"):
         for x in result:
             st.image(x.getvalue(),width=200)
     
     # ADD MODEL HERE
     if st.button("Run Model"):
-        #PROGRESS BAR Take out if cannot figure out
         
-        
-        # For test images in a folder
+        # get image from input folder
         image_list, _, _ = file_utils.get_files(c_args.input_folder)
         image_names = []
-        st.write('Get Image Name')
         for num in range(len(image_list)):
             image_names.append(os.path.relpath(image_list[num], c_args.input_folder))
-        st.write(c_args.input_folder)
         
-        st.write('Append arguments')
+        # prepare remaining parameter for comming models
         c_args.image_list=image_list
         c_args.image_names=image_names
+        
         if c_args.refine:
             refine_net = pipeline.load_refiner(c_args)
             refine_net.eval()
@@ -139,35 +141,21 @@ def main():
         t_args.image_folder=crop_img_path
         t_args.output_folder=output_path
         
-        pipeline.run(c_args,craft_net,refine_net)
-        crop_image.run()
-        data_loader = set_data_loader(t_args)
-        pred_crop_img(t_args,recognizer,data_loader, converter)
-        gen_menu(t_args.output_folder)
-        st.write('Finish')
+        # Pipeline for digitalize documents
+        pipeline.run(c_args,craft_net,refine_net) # write boxes for every words
+        crop_image.run() # crop image for each word
+        data_loader = set_data_loader(t_args) # load cropped images to dataloader
+        pred_crop_img(t_args,recognizer,data_loader, converter) # predict all cropped images
+        gen_menu(t_args.output_folder) # generate txt for each image
         
+        # Message for download
+        st.markdown('Download txt files')
+        text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
 
-    # CHANGE TO CSV FILE AND INPUT HERE
-    # When no file name is given, pandas returns the CSV as a string, nice.
-#     df = pd.DataFrame(data, columns=["Col1", "Col2", "Col3"])
-#     csv = df.to_csv(index=False)
-#     b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-    
-    st.write('Download txt files')
-    text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
-    for text in text_menu_list:
-        with open(text, "rb") as f:
-            text_name=text.split('/')[-1].split('.')[0]
-            bytes = f.read()
-            b64 = base64.b64encode(bytes).decode()
-            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name}.txt</a> '
-            st.markdown(href, unsafe_allow_html=True)
-#     #Change b64 to output file
-#     href = f'<a href="data:file/csv;base64,{b64}">Download CSV File</a> (right-click and save as &lt;some_name&gt;.csv)'
-#     st.markdown(href, unsafe_allow_html=True)
+        # Generate digital documents
+        gen_digi_docs(text_menu_list)
 
-    
-'''Start of application'''
+# assign different path
 home = str(Path.home())
 craft_model_path = home+'/craft/CRAFT/weights/'
 recog_model_path = home+'/craft/TextRecognizer/weights/'
@@ -176,24 +164,17 @@ result_folder = home+'/craft/data/craft_output/'
 crop_img_path=home+'/craft/data/crop_img/'
 output_path = home+'/craft/data/output/'
 
+# Create Global variables
 c_args, t_args, craft_net, recognizer, converter = None, None, None, None, None
-
 
 # load large size parameter and setup 
 c_args,craft_net=setup_CRAFT()
 t_args,recognizer,converter=setup_Recognizer()
+
+# main function
 main()
 
 
-# try:
-#     import streamlit as st
-#     import os
-#     import sys
-#     import pandas as pd
-#     from io import BytesIO, StringIO 
-#     print("All Modules Loaded ")
-# except Exceptions as e:
-#     print("Some Modules are Missing : {} ".format(e))
 
 # STYLE = """
 # <style>
