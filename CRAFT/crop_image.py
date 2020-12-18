@@ -69,7 +69,6 @@ def run():
         image = cv2.imread(os.path.join(start, data['image_name'][image_num]))
         image_name = data['image_name'][image_num].strip('.jpg')
         score_bbox = data['word_bboxes'][image_num].split('),')
-        print('image_name: ',image_name)
         generate_words(image_name, score_bbox, image, result_folder)
         
 if __name__ == '__main__':

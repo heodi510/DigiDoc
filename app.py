@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import time
 import cv2
@@ -7,6 +8,7 @@ import base64
 import pandas as pd
 import numpy as np
 import streamlit as st
+
 
 from PIL import Image
 from typing import Dict
@@ -31,6 +33,7 @@ from TextRecognizer.recognizer import pred_crop_img
 from TextRecognizer.recognizer import gen_menu
 from TextRecognizer.recognizer import load_model
 from TextRecognizer.recognizer import set_data_loader
+
 
 @st.cache(allow_output_mutation=True)
 def setup_CRAFT():
@@ -88,7 +91,25 @@ def gen_digi_docs(text_menu_list):
             href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name}.txt</a> '
             st.markdown(href, unsafe_allow_html=True)
 
-
+def clear_folder(folder):
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        print('Clear '+file_path)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            
+def clear_all():
+    clear_folder(input_path)
+    clear_folder(result_folder)
+    clear_folder(crop_img_path)
+    clear_folder(output_path)
+    
+            
 def main():
     """Run this function to run the app"""
     
@@ -107,53 +128,61 @@ def main():
     result = st.file_uploader("Upload one or more images to convert to CSV", type=["png","jpg","jpeg"],accept_multiple_files=True)
 
     if result:
+        
+        # clear all temporary results
+        clear_folder(result_folder)
+        clear_folder(crop_img_path)
+        clear_folder(output_path)
+        
         st.info("Total: " + str(len(result)) + " Images")
         
         # save image into input file
         for i,img_file_buffer in enumerate(result):
             img = Image.open(img_file_buffer)
+            st.image(img_file_buffer.getvalue(),width=200)
             img.save(input_path+'image_'+str(i+1)+'.jpg')
-            
-    if st.checkbox("Show Images / Hide Images"):
-        for x in result:
-            st.image(x.getvalue(),width=200)
-    
-    # ADD MODEL HERE
-    if st.button("Run Model"):
         
-        # get image from input folder
-        image_list, _, _ = file_utils.get_files(c_args.input_folder)
-        image_names = []
-        for num in range(len(image_list)):
-            image_names.append(os.path.relpath(image_list[num], c_args.input_folder))
-        
-        # prepare remaining parameter for comming models
-        c_args.image_list=image_list
-        c_args.image_names=image_names
-        
-        if c_args.refine:
-            refine_net = pipeline.load_refiner(c_args)
-            refine_net.eval()
-            c_args.poly = True
-        else:
-            refine_net = None
-        
-        t_args.image_folder=crop_img_path
-        t_args.output_folder=output_path
-        
-        # Pipeline for digitalize documents
-        pipeline.run(c_args,craft_net,refine_net) # write boxes for every words
-        crop_image.run() # crop image for each word
-        data_loader = set_data_loader(t_args) # load cropped images to dataloader
-        pred_crop_img(t_args,recognizer,data_loader, converter) # predict all cropped images
-        gen_menu(t_args.output_folder) # generate txt for each image
-        
-        # Message for download
-        st.markdown('Download txt files')
-        text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
+        # ADD MODEL HERE
+        if st.button("Run Model"):
 
-        # Generate digital documents
-        gen_digi_docs(text_menu_list)
+            # get image from input folder
+            image_list, _, _ = file_utils.get_files(c_args.input_folder)
+            image_names = []
+            for num in range(len(image_list)):
+                image_names.append(os.path.relpath(image_list[num], c_args.input_folder))
+
+            # prepare remaining parameter for comming models
+            c_args.image_list=image_list
+            c_args.image_names=image_names
+
+            if c_args.refine:
+                refine_net = pipeline.load_refiner(c_args)
+                refine_net.eval()
+                c_args.poly = True
+            else:
+                refine_net = None
+
+            t_args.image_folder=crop_img_path
+            t_args.output_folder=output_path
+
+            # Pipeline for digitalize documents
+            pipeline.run(c_args,craft_net,refine_net) # write boxes for every words
+            crop_image.run() # crop image for each word
+            data_loader = set_data_loader(t_args) # load cropped images to dataloader
+            pred_crop_img(t_args,recognizer,data_loader, converter) # predict all cropped images
+            gen_menu(t_args.output_folder) # generate txt for each image
+            
+            # Message for download
+            st.markdown('Download txt files')
+            text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
+
+            # Generate digital documents
+            gen_digi_docs(sorted(text_menu_list))
+            
+            clear_folder(input_path)
+            clear_folder(result_folder)
+            clear_folder(crop_img_path)
+                
 
 # assign different path
 home = str(Path.home())
@@ -171,6 +200,8 @@ c_args, t_args, craft_net, recognizer, converter = None, None, None, None, None
 c_args,craft_net=setup_CRAFT()
 t_args,recognizer,converter=setup_Recognizer()
 
+# clear all data folders
+clear_all()
 # main function
 main()
 
