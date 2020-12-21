@@ -15,6 +15,7 @@ import pandas as pd
 import os
 import re
 import numpy as np
+import math
 from statistics import stdev
 from pathlib import Path
 
@@ -95,9 +96,8 @@ def find_cord(image_name,idx):
 
 def getVerDisStd(df,rm_outlier=True):
     ''' Get standard deviation of consecutive vertical difference '''
-    df = df[df['prob']>=0.3]
+    df = df[df['prob']>=0.1]
     df.reset_index(drop=True,inplace=True)
-    df['pred']=df['pred'].str.strip()
     df['h_level'] = (df['vertex3_y']+df['vertex4_y'])/2
     
     # Series of difference between the consecutive values        
@@ -169,24 +169,56 @@ def gen_menu(output_folder):
         result['vertex3_y']=result.apply(lambda x: find_cord(x.image_name, 5), axis=1).astype(float)
         result['vertex4_x']=result.apply(lambda x: find_cord(x.image_name, 6), axis=1).astype(float)
         result['vertex4_y']=result.apply(lambda x: find_cord(x.image_name, 7), axis=1).astype(float)
-
-        ### 1.calculate slop of each word box ###
-
         result=result[['image_name','vertex1_x','vertex1_y','vertex2_x','vertex2_y','vertex3_x','vertex3_y','vertex4_x','vertex4_y','pred','prob']]
         result.sort_values('vertex4_y',inplace=True)
-
-        ### 2.calculate mean of slopes ###
-
-        ### 3.calculate relative coordinate ###
-
-        ### 4.write relative coordinate to rsult###
-
 
         # prepare input for write_menu()
         file_name=pred_file.split('/')[-1]
         df=result.copy()
         write_file(df,file_name,output_path)
+
+def gen_rotated_menu(output_folder):
+    pred_list = [os.path.join(output_folder, f) for f in os.listdir(output_folder) if os.path.isfile(os.path.join(output_folder, f)) and f.endswith('pred_result.txt')]
+    for pred_file in pred_list:
+        raw_log = pd.read_csv(pred_file,sep="\t", header = None)
+        result=raw_log.copy()
+        result.columns=['image_name','pred','prob']
+        result['vertex1_x']=result.apply(lambda x: find_cord(x.image_name, 0), axis=1).astype(float)
+        result['vertex1_y']=result.apply(lambda x: find_cord(x.image_name, 1), axis=1).astype(float)
+        result['vertex2_x']=result.apply(lambda x: find_cord(x.image_name, 2), axis=1).astype(float)
+        result['vertex2_y']=result.apply(lambda x: find_cord(x.image_name, 3), axis=1).astype(float)
+        result['vertex3_x']=result.apply(lambda x: find_cord(x.image_name, 4), axis=1).astype(float)
+        result['vertex3_y']=result.apply(lambda x: find_cord(x.image_name, 5), axis=1).astype(float)
+        result['vertex4_x']=result.apply(lambda x: find_cord(x.image_name, 6), axis=1).astype(float)
+        result['vertex4_y']=result.apply(lambda x: find_cord(x.image_name, 7), axis=1).astype(float)
+        result.reset_index(inplace=True)
+        result['rotation_x']=result['vertex4_x'][0]
+        result['rotation_y']=result['vertex4_y'][0]
+        result['ratio']=(result['vertex4_y']-result['vertex3_y'])/(result['vertex4_x']-result['vertex3_x'])
+        result['theta']=result['ratio'].apply(lambda x: math.atan(x))
+        result['theta'].replace(0,np.NaN,inplace=True)
+        result['correction_theta']=result['theta'].apply(lambda x:-x).mean()
+        result['cos_theta']=result['correction_theta'].apply(lambda x: math.cos(x))
+        result['sin_theta']=result['correction_theta'].apply(lambda x: math.sin(x))
+        result['new_3x']=(result['vertex3_x']-result['rotation_x'])*result['cos_theta']-(result['vertex3_y']-result['rotation_y'])*result['sin_theta']+ result['rotation_x']
+        result['new_3y']=(result['vertex3_x']-result['rotation_x'])*result['sin_theta']+(result['vertex3_y']-result['rotation_y'])*result['cos_theta']+ result['rotation_y']
+        result['new_4x']=(result['vertex4_x']-result['rotation_x'])*result['cos_theta']-(result['vertex4_y']-result['rotation_y'])*result['sin_theta']+ result['rotation_x']
+        result['new_4y']=(result['vertex4_x']-result['rotation_x'])*result['sin_theta']+(result['vertex4_y']-result['rotation_y'])*result['cos_theta']+ result['rotation_y']
+        result['pred']=result['pred'].str.strip()
+
+        result=result[['image_name','vertex1_x','vertex1_y','vertex2_x','vertex2_y','vertex3_x','vertex3_y','vertex4_x','vertex4_y','pred','prob',\
+                       'rotation_x','rotation_y','ratio','theta','correction_theta','cos_theta','sin_theta','new_3x','new_3y','new_4x','new_4y']]
+        result['pred']=result['pred'].str.strip()
+        df=result[(result['prob']<0.3) & (result['pred'].str.contains('\$?\d+', regex=True))]['pred'].apply(lambda x: x[:-1])
+        result.update(df)
+        result['pred']=result['pred'].apply(lambda x:x.split('-')[0])
+        
+        result.sort_values('new_4y',inplace=True)
     
+        # prepare input for write_menu()
+        file_name=pred_file.split('/')[-1]
+        df=result.copy()
+        write_file(df,file_name,output_path)
     
 '''Start of recognizer.py'''  
 

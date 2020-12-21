@@ -31,9 +31,11 @@ from CRAFT.craft import CRAFT
 import TextRecognizer.recognizer as recognizer
 from TextRecognizer.recognizer import pred_crop_img
 from TextRecognizer.recognizer import gen_menu
+from TextRecognizer.recognizer import gen_rotated_menu
 from TextRecognizer.recognizer import load_model
 from TextRecognizer.recognizer import set_data_loader
 
+from MenuNER.ner import menutxt_to_dataframe
 
 @st.cache(allow_output_mutation=True)
 def setup_CRAFT():
@@ -82,15 +84,34 @@ def setup_Recognizer():
     t_args,recognizer,converter = load_model(t_args)
     return t_args,recognizer,converter
 
-def gen_digi_docs(text_menu_list):
+def show_digi_docs(text_menu_list):
+    full_menu=''
+    for menu_file in text_menu_list:
+        with open(menu_file, "r") as f:
+            st.text(menu_file.split('/')[-1][:-11]+'.jpg')
+            st.code(f.read())
+            full_menu+=f.read()
+    f = open("data/output/final.txt", "a")
+    f.write(full_menu)
+    f.close()
+
+def gen_multi_digi_docs(text_menu_list):
     for text in text_menu_list:
         with open(text, "rb") as f:
             text_name=text.split('/')[-1].split('.')[0]
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()
-            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name}.txt</a> '
+            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name[:-7]}.txt</a> '
             st.markdown(href, unsafe_allow_html=True)
 
+def gen_combined_digi_docs(final_menu='data/output/final.txt'):
+    with open(final_menu, "rb") as f:
+        bytes = f.read()
+        b64 = base64.b64encode(bytes).decode()
+        st.write('This is combined menu:')
+        href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as menu.txt</a> '
+        st.markdown(href, unsafe_allow_html=True)
+            
 def clear_folder(folder):
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -108,7 +129,10 @@ def clear_all():
     clear_folder(result_folder)
     clear_folder(crop_img_path)
     clear_folder(output_path)
-    
+
+def split(result,n):
+    k, m = divmod(len(result), 3)
+    return (result[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
             
 def main():
     """Run this function to run the app"""
@@ -119,7 +143,6 @@ def main():
     document_type = st.sidebar.selectbox("Document Type",["Menus","Invoices (Coming Soon)","Tax Forms (Coming Soon)","Contracts (Coming Soon)","Reports (Coming Soon)","Id Documents (Coming Soon)"])
     file_format = st.sidebar.radio("Type of Format",("Format 1","Format 2","Format 3","Format 4"))
     st.sidebar.header("About")
-    st.sidebar.info("***Input Your Own Description***")
 
     # Main Page
     st.image("pic/logo.png",width=600)
@@ -133,14 +156,31 @@ def main():
         clear_folder(result_folder)
         clear_folder(crop_img_path)
         clear_folder(output_path)
-        
         st.info("Total: " + str(len(result)) + " Images")
         
         # save image into input file
+        img_dict={}
         for i,img_file_buffer in enumerate(result):
             img = Image.open(img_file_buffer)
-            st.image(img_file_buffer.getvalue(),width=200)
-            img.save(input_path+'image_'+str(i+1)+'.jpg')
+            img_name='image_'+str(i+1)+'.jpg'
+            img.save(input_path+img_name)
+            img_dict.update({img_name:img_file_buffer})
+                
+        image_expander = st.beta_expander("Show Images / Hide Images",expanded=True)
+        with image_expander:
+            col1,col2,col3 = st.beta_columns(3)
+            for i,key in enumerate(img_dict.keys()):
+                if i%3==0:
+                    col1.text(key)
+                    col1.image(img_dict[key].getvalue(),use_column_width=True)
+                elif i%3==1:
+                    col2.text(key)
+                    col2.image(img_dict[key].getvalue(),use_column_width=True)
+                elif i%3==2:
+                    col3.text(key)
+                    col3.image(img_dict[key].getvalue(),use_column_width=True)
+
+        ner=st.checkbox('Csv format')
         
         # ADD MODEL HERE
         if st.button("Run Model"):
@@ -170,19 +210,25 @@ def main():
             crop_image.run() # crop image for each word
             data_loader = set_data_loader(t_args) # load cropped images to dataloader
             pred_crop_img(t_args,recognizer,data_loader, converter) # predict all cropped images
-            gen_menu(t_args.output_folder) # generate txt for each image
             
-            # Message for download
-            st.markdown('Download txt files')
+            # generate txt for each image
+            gen_rotated_menu(t_args.output_folder)
+                
+            # Get text menu list
             text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
-
-            # Generate digital documents
-            gen_digi_docs(sorted(text_menu_list))
             
-            clear_folder(input_path)
+            # Print Text file preview
+            st.markdown('Here are you output :)')
+            if not ner:
+                show_digi_docs(sorted(text_menu_list))
+
+                # Generate digital documents
+                st.markdown('Download txt files')
+                gen_multi_digi_docs(sorted(text_menu_list))
+                gen_combined_digi_docs()
+                
             clear_folder(result_folder)
             clear_folder(crop_img_path)
-                
 
 # assign different path
 home = str(Path.home())
@@ -205,39 +251,6 @@ clear_all()
 # main function
 main()
 
-
-
-# STYLE = """
-# <style>
-# img {
-#     max-width: 100%;
-# }
-# </style>
-# """
-
-
-# def main():
-#     """Run this function to display the Streamlit app"""
-#     st.info(__doc__)
-#     st.markdown(STYLE, unsafe_allow_html=True)
-#     file = st.file_uploader("Upload file", type=["csv","png","jpg"])
-#     show_file = st.empty()
-
-#     if not file:
-#         show_file.info("Please Upload a file : {} ".format(' '.join(["csv","png","jpg"])))
-#         return
-#     content = file.getvalue()
-
-#     # if isinstance(file, BytesIO):
-#     #     show_file.image(file)
-#     # else:
-#     #     df = pd.read_csv(file)
-#     #     st.dataframe(df.head(10))
-#     file.close()
-#     st.image(content)
-#     st.text(path.content)
-
-# main()
 
 
 # # Text/Title
