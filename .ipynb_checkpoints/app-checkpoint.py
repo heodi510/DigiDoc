@@ -84,32 +84,60 @@ def setup_Recognizer():
     t_args,recognizer,converter = load_model(t_args)
     return t_args,recognizer,converter
 
-def show_digi_docs(text_menu_list):
-    full_menu=''
+def show_digi_docs(text_menu_list,ner):
+    full_menu_text=''
+    full_menu_df = pd.DataFrame(columns=['$','Dish'])
     for menu_file in text_menu_list:
         with open(menu_file, "r") as f:
             st.text(menu_file.split('/')[-1][:-11]+'.jpg')
-            st.code(f.read())
-            full_menu+=f.read()
+            # read menu content
+            menu_text=f.read()
+            # concat every menu content
+            full_menu_text+=menu_text
+            # get df 
+            menu_df=menutxt_to_dataframe(menu_text,1)
+            menu_df.to_csv(menu_file[:-4]+'.csv',index=False)
+            
+            full_menu_df = full_menu_df.append(menu_df)
+            if not ner:
+                st.code(menu_text)
+            else:
+                st.dataframe(menu_df)
+    # write final txt file
     f = open("data/output/final.txt", "a")
-    f.write(full_menu)
+    f.write(full_menu_text)
     f.close()
+    # write final df file
+    full_menu_df.to_csv("data/output/final.csv", index=False)
+    
 
-def gen_multi_digi_docs(text_menu_list):
+def gen_multi_digi_docs(text_menu_list,ner):
+    
     for text in text_menu_list:
         with open(text, "rb") as f:
             text_name=text.split('/')[-1].split('.')[0]
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()
-            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name[:-7]}.txt</a> '
+            if not ner:
+                href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as {text_name[:-7]}.txt</a> '
+            else:
+                href = f'<a href="data:file/csv;base64,{b64}">Right-click and save as {text_name[:-7]}.csv</a> '
             st.markdown(href, unsafe_allow_html=True)
 
-def gen_combined_digi_docs(final_menu='data/output/final.txt'):
+def gen_combined_digi_docs(ner):
+    if not ner:
+        final_menu='data/output/final.txt'
+    else:
+        final_menu='data/output/final.csv'
+        
     with open(final_menu, "rb") as f:
         bytes = f.read()
         b64 = base64.b64encode(bytes).decode()
         st.write('This is combined menu:')
-        href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as menu.txt</a> '
+        if not ner:
+            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as menu.txt</a> '
+        else:
+            href = f'<a href="data:file/txt;base64,{b64}">Right-click and save as menu.csv</a> '
         st.markdown(href, unsafe_allow_html=True)
             
 def clear_folder(folder):
@@ -215,17 +243,19 @@ def main():
             gen_rotated_menu(t_args.output_folder)
                 
             # Get text menu list
+            
             text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output.txt')]
             
             # Print Text file preview
             st.markdown('Here are you output :)')
-            if not ner:
-                show_digi_docs(sorted(text_menu_list))
+            show_digi_docs(sorted(text_menu_list),ner)
 
-                # Generate digital documents
-                st.markdown('Download txt files')
-                gen_multi_digi_docs(sorted(text_menu_list))
-                gen_combined_digi_docs()
+            # Generate digital documents
+            st.markdown('Download txt files')
+            file_type = '.txt' if not ner else '.csv'
+            text_menu_list = [os.path.join(output_path, f) for f in os.listdir(output_path) if os.path.isfile(os.path.join(output_path, f)) and f.endswith('output'+file_type)]
+            gen_multi_digi_docs(sorted(text_menu_list),ner)
+            gen_combined_digi_docs(ner)
                 
             clear_folder(result_folder)
             clear_folder(crop_img_path)
