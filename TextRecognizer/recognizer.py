@@ -223,9 +223,9 @@ def gen_rotated_menu(output_folder):
 '''Start of recognizer.py'''  
 
 home = str(Path.home())
-weights_path = home+'/craft/TextRecognizer/weights/'
-crop_img_path=home+'/craft/data/crop_img/'
-output_path = home+'/craft/data/output/'
+weights_path = home+'/DigiDoc/TextRecognizer/weights/'
+crop_img_path=home+'/DigiDoc/data/crop_img/'
+output_path = home+'/DigiDoc/data/output/'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -60,10 +60,10 @@ def generate_words(image_name, score_bbox, image, result_folder):
                     continue
 def run():
     home = str(Path.home())
-    data=pd.read_csv(home+'/craft/data/craft_output/data.csv')
+    data=pd.read_csv(home+'/DigiDoc/data/craft_output/data.csv')
 
-    start = home+'/craft/data/input_img/'
-    result_folder = home+'/craft/data/crop_img/'
+    start = home+'/DigiDoc/data/input_img/'
+    result_folder = home+'/DigiDoc/data/crop_img/'
 
     for image_num in range(data.shape[0]):
         image = cv2.imread(os.path.join(start, data['image_name'][image_num]))

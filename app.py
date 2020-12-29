@@ -263,12 +263,12 @@ def main():
 
 # assign different path
 home = str(Path.home())
-craft_model_path = home+'/craft/CRAFT/weights/'
-recog_model_path = home+'/craft/TextRecognizer/weights/'
-input_path = home+'/craft/data/input_img/'
-result_folder = home+'/craft/data/craft_output/'
-crop_img_path=home+'/craft/data/crop_img/'
-output_path = home+'/craft/data/output/'
+craft_model_path = home+'/DigiDoc/CRAFT/weights/'
+recog_model_path = home+'/DigiDoc/TextRecognizer/weights/'
+input_path = home+'/DigiDoc/data/input_img/'
+result_folder = home+'/DigiDoc/data/craft_output/'
+crop_img_path=home+'/DigiDoc/data/crop_img/'
+output_path = home+'/DigiDoc/data/output/'
 
 # Create Global variables
 c_args, t_args, craft_net, recognizer, converter = None, None, None, None, None

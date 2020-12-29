@@ -103,9 +103,9 @@ def run(args,model,refiner):
 # initalize paths
 # modify the absolute path if necessary
 home = str(Path.home())
-weights_path = home+'/craft/CRAFT/weights/'
-input_path = home+'/craft/data/input_img/'
-result_folder = home+'/craft/data/craft_output/'
+weights_path = home+'/DigiDoc/CRAFT/weights/'
+input_path = home+'/DigiDoc/data/input_img/'
+result_folder = home+'/DigiDoc/data/craft_output/'
     
 if __name__ == '__main__':
     
