@@ -4,7 +4,7 @@ from nltk.tag import pos_tag
 from nltk.chunk import ne_chunk
 from nltk.chunk import conlltags2tree, tree2conlltags
 import pandas as pd
-
+import re
 
 def preprocess(sent):
     # Preprocess the text by tokenising the words and adding a pos tag to each word
@@ -95,10 +95,13 @@ def menu_categorizer(labelled_menu, adjuster):
 def menutxt_to_dataframe(menu_text_file, adjuster):
   # Converts text menu file to a dataframe
   # For the adjuster input only -1 or +1 try manually to see which one makes more sense or which one works
+    menu_text_file = re.sub('[sS](\d+)', '$\1', menu_text_file)
     para = menu_text_file.split('\n')
     list_with_IOB = menu_to_list(para)
     untupled_list = tuple_converter(list_with_IOB)
     menu_with_label = menu_labeller(untupled_list)
     clean_menu = menu_cleaner(menu_with_label)
     final = menu_categorizer(clean_menu,adjuster)
+#     final = final[~final.Dish.str.contains("$")]
     return final
+

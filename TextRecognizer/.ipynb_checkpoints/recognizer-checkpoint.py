@@ -96,7 +96,7 @@ def find_cord(image_name,idx):
 
 def getVerDisStd(df,rm_outlier=True):
     ''' Get standard deviation of consecutive vertical difference '''
-    df = df[df['prob']>=0.1]
+    df = df[df['prob']>=0.09]
     df.reset_index(drop=True,inplace=True)
     df['h_level'] = (df['vertex3_y']+df['vertex4_y'])/2
     
