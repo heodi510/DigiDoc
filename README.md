@@ -11,17 +11,41 @@ Users simply input an image of the document and through our web application, can
 Our first step towards DigiDoc is to digitize restaurant menus smoothly for restaurant owners and online food delivery services. 
 And then slowly transition towards other physical docucments such as contracts and application forms. We've deployed our model onto Streamlit, try us out!
 
-# Demo-Preview
+# Demo Preview
+![testing](pic/DigiDoc_demo.gif)
+This gif shows a quick demo for our project.
 
 # Table of contents
+<!--ts-->
+   * [DigiDoc](#DigiDoc)
+   * [Demo Preview](#Demo-Preview)
+   * [Table of contents](#table-of-contents)
+   * [Prerequisite](#prerequisite)
+   * [Project Structure](#project-structure)
+      * [CRAFT](#craft)
+      * [Text Recognizer](#test-recognizer)
+      * [Sequential Writer](#sequential)
+      * [CSV Converter](#csv-converter)
+      * [Web Application](#web-application)
+   * [Development](#development)
+   * [Deployment](#deployment)
+   * [Result](#result)
+      * [Performance](#preformance)
+      * [Challenge](#challenge)
+      * [Improvement](#improvement)
+   * [Reference](#reference)
+   * [Licensing](#licensing)
+<!--te-->
 
 # Prerequisite
 
-# Features
+# Project Structure
 
 # Development
 
-# Contributing
+# Deployment
+
+# Result
 
 # Reference
 
