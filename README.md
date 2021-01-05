@@ -6,14 +6,23 @@
 <h4 align="center">Helper for transforming your hardcopy document to softcopy!</h4>
 
 DigiDoc is a one-stop text digitization solution for businesses which can convert documents, invoices or other physical text into an organised tabular format using combined machine learning models. 
+
 It helps simplify the data entry process and reduce manual workload, thereby improving business costs and efficiency. 
 Users simply input an image of the document and through our web application, can transform and download it as a txt or csv file. 
+
 Our first step towards DigiDoc is to digitize restaurant menus smoothly for restaurant owners and online food delivery services. 
 And then slowly transition towards other physical docucments such as contracts and application forms. We've deployed our model onto Streamlit, try us out!
 
 # Demo Preview
-![testing](pic/DigiDoc_demo.gif)
-This gif shows a quick demo for our project.
+![](pic/DigiDoc_demo.gif)
+
+This gif shows a quick demo for our project
+1. Drap and drop images to DigiDoc
+2. The uploaded images are shown
+3. Choose output file format (default is csv)
+4. Click 'Run Model' button
+5. Preview of the output files are shown
+6. Download the output file with links provided
 
 # Table of contents
 <!--ts-->
