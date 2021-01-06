@@ -86,12 +86,15 @@ Here is the pipline of modeule:
 
 ![](pic/model_structure.jpg)
 
-**CRAFT**
+[**CRAFT**](https://github.com/clovaai/CRAFT-pytorch) [1]
 
 The CRAFT model is a VGG16 based model which calculate the similiarity of text and group the characters as a word. 
 For each grouped characters, the model will draw a smallest rectangle and bound the whole word. 
 Once we have the rectangular boundary, we found out 4 vertexs of the rectangle and cropped it with openCV library. 
 The cropped images are passed to text recognizer.
+
+Exmaple:\
+![](pic/box1.jpg)
 
 **Text Recognizer**
 
@@ -109,11 +112,16 @@ For every single word, the coordinates of bottom vertices are used to calculate 
 The x coordinate of bottom vertices are used to sorted the word in each line with correct order. Each line with sorted words is combined to single text file
 and it is ready to export to user or pass to NER model for generating csv file.
 
+Sample ouput:\
+![](pic/demo_txt.jpg)
+
 **NER**
 
 The NER model is trained using NLTK. 
 With tag of POS and finding out the location of dollar sign, we classifiy the information in text file as a price or a dish discription. 
 Finally export the data in csv format.  
+
+![](pic/demo_Csv.jpg)
 
 # Development
 
@@ -125,9 +133,9 @@ It is not designed to support CI/CD and online training as business case nowaday
 Two different kinds of data is collected. One is image data for text recognization and the other one is New York Dataset for menu image
 
 For text recognization:\
-training dataset: [Synthetic Word Dataset](https://www.robots.ox.ac.uk/~vgg/data/text/), [Focused Scene Text](https://rrc.cvc.uab.es/?ch=2)\
-validation dataset: [Incidental Scene Text](https://rrc.cvc.uab.es/?ch=4), [IIIT 5K](http://cvit.iiit.ac.in/projects/SceneTextUnderstanding/IIIT5K.html)\
-test dataset: [The Street View Text Dataset](http://www.iapr-tc11.org/mediawiki/index.php/The_Street_View_Text_Dataset)
+training dataset: [Synthetic Word Dataset](https://www.robots.ox.ac.uk/~vgg/data/text/)[2], [Focused Scene Text](https://rrc.cvc.uab.es/?ch=2)[3]\
+validation dataset: [Incidental Scene Text](https://rrc.cvc.uab.es/?ch=4)[4], [IIIT 5K](http://cvit.iiit.ac.in/projects/SceneTextUnderstanding/IIIT5K.html)[5]\
+test dataset: [Incidental Scene Text](https://rrc.cvc.uab.es/?ch=4)[4], [IIIT 5K](http://cvit.iiit.ac.in/projects/SceneTextUnderstanding/IIIT5K.html)[5], [The Street View Text Dataset](http://www.iapr-tc11.org/mediawiki/index.php/The_Street_View_Text_Dataset)[6]
 
 For NER:\
 [Menu data for New York Public Library](http://menus.nypl.org/menus)
@@ -151,7 +159,8 @@ Accuracy, Normalised Edit Distance
 Framework of web application
 
 **Google App Engine**\
-GCP tool for deployment
+GCP tool for deployment\
+The files responsible for deploying the project on GCP app engine are 
 
 # Result
 **Performance**
@@ -172,9 +181,9 @@ It will be too complicated for handling all conditions.
 
 # Reference
 
-[1] M. Jaderberg, K. Simonyan, A. Vedaldi, and A. Zisserman. Synthetic data and artificial neural networks for natural scenetext recognition. In Workshop on Deep Learning, NIPS, 2014.\
-[2] A. Gupta, A. Vedaldi, and A. Zisserman. Synthetic data fortext localisation in natural images. In CVPR, 2016.\
-[3] D. Karatzas, F. Shafait, S. Uchida, M. Iwamura, L. G. i Big-orda, S. R. Mestre, J. Mas, D. F. Mota, J. A. Almazan, andL. P. De Las Heras. ICDAR 2013 robust reading competition. In ICDAR, pages 1484–1493, 2013.\
+[1] 2019-present NAVER Corp
+[2] M. Jaderberg, K. Simonyan, A. Vedaldi, and A. Zisserman. Synthetic data and artificial neural networks for natural scenetext recognition. In Workshop on Deep Learning, NIPS, 2014.\
+[3] A. Gupta, A. Vedaldi, and A. Zisserman. Synthetic data fortext localisation in natural images. In CVPR, 2016.\
 [4] D. Karatzas, L. Gomez-Bigorda, A. Nicolaou, S. Ghosh, A. Bagdanov, M. Iwamura, J. Matas, L. Neumann, V. R.Chandrasekhar, S. Lu, et al. ICDAR 2015 competition on ro-bust reading. In ICDAR, pages 1156–1160, 2015.\
 [5] A. Mishra, K. Alahari, and C. Jawahar. Scene text recognition using higher order language priors. In BMVC, 2012.
-
+[6] K. Wang, B. Babenko, and S. Belongie. End-to-end scenetext recognition. In ICCV, pages 1457–1464, 2011. 
