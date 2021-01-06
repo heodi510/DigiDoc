@@ -113,7 +113,7 @@ The x coordinate of bottom vertices are used to sorted the word in each line wit
 and it is ready to export to user or pass to NER model for generating csv file.
 
 Sample ouput:\
-![](pic/demo_txt.jpg)
+![](pic/demo_txt.png)
 
 **NER**
 
@@ -121,7 +121,7 @@ The NER model is trained using NLTK.
 With tag of POS and finding out the location of dollar sign, we classifiy the information in text file as a price or a dish discription. 
 Finally export the data in csv format.  
 
-![](pic/demo_Csv.jpg)
+![](pic/demo_csv.png)
 
 # Development
 
