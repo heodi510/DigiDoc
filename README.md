@@ -129,8 +129,7 @@ training dataset: [Synthetic Word Dataset](https://www.robots.ox.ac.uk/~vgg/data
 validation dataset: [Incidental Scene Text](https://rrc.cvc.uab.es/?ch=4), [IIIT 5K](http://cvit.iiit.ac.in/projects/SceneTextUnderstanding/IIIT5K.html)\
 test dataset: [The Street View Text Dataset](http://www.iapr-tc11.org/mediawiki/index.php/The_Street_View_Text_Dataset)
 
-For NER model:\
-For menu image and text content for NER:\
+For NER:\
 [Menu data for New York Public Library](http://menus.nypl.org/menus)
 
 **Training & Evaluation**
@@ -177,5 +176,5 @@ It will be too complicated for handling all conditions.
 [2] A. Gupta, A. Vedaldi, and A. Zisserman. Synthetic data fortext localisation in natural images. In CVPR, 2016.\
 [3] D. Karatzas, F. Shafait, S. Uchida, M. Iwamura, L. G. i Big-orda, S. R. Mestre, J. Mas, D. F. Mota, J. A. Almazan, andL. P. De Las Heras. ICDAR 2013 robust reading competition. In ICDAR, pages 1484–1493, 2013.\
 [4] D. Karatzas, L. Gomez-Bigorda, A. Nicolaou, S. Ghosh, A. Bagdanov, M. Iwamura, J. Matas, L. Neumann, V. R.Chandrasekhar, S. Lu, et al. ICDAR 2015 competition on ro-bust reading. In ICDAR, pages 1156–1160, 2015.\
-[5] A. Mishra, K. Alahari, and C. Jawahar. Scene text recognition using higher order language priors. In BMVC, 2012.\
+[5] A. Mishra, K. Alahari, and C. Jawahar. Scene text recognition using higher order language priors. In BMVC, 2012.
 
