@@ -7,7 +7,7 @@
 
 DigiDoc is a one-stop text digitization solution for businesses which can convert documents, invoices or other physical text into an organised tabular format using combined machine learning models. 
 
-It helps simplify the data entry process and reduce manual workload, thereby improving business costs and efficiency. 
+It helps to simplify the data entry process and reduce manual workload, thereby improving business costs and efficiency. 
 Users simply input an image of the document and through our web application, can transform and download it as a txt or csv file. 
 
 Our first step towards DigiDoc is to digitize restaurant menus smoothly for restaurant owners and online food delivery services. 
